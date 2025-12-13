@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Wiki Fetcher – Distraction-Free Wikipedia for Students</title>
+    <meta name="description" content="Wiki Fetcher is a distraction-free Wikipedia reader for students. Read topics paragraph by paragraph without ads or clutter.">
+    <meta name="keywords" content="Wikipedia reader, distraction free Wikipedia, student learning tool, wiki fetcher">
+    <meta name="author" content="Wiki Fetcher">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://yourdomain.com/">
+
+    <meta property="og:title" content="Wiki Fetcher – Smart Learning Tool">
+    <meta property="og:description" content="Read Wikipedia in a clean, distraction-free way. Built for students.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourdomain.com/">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col font-sans">
+
+    <nav class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100 dark:border-gray-700">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2 cursor-pointer group" onclick="resetApp()">
+                <div class="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-brand-500/30 shadow-lg transform group-hover:scale-105 transition">
+                    W
+                </div>
+                <h1 class="text-lg font-bold tracking-tight hidden sm:block group-hover:text-brand-600 transition">Wiki Fetcher</h1>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <select id="langSelect" class="bg-gray-100 dark:bg-gray-700 border-none text-xs sm:text-sm rounded-lg px-3 py-1.5 font-medium outline-none cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                    <option value="en">English</option>
+                    <option value="hi">Hindi</option>
+                    <option value="as">Assamese</option>
+                </select>
+
+                <button onclick="toggleTheme()" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                    <i class="fas fa-moon dark:hidden text-gray-600 text-sm"></i>
+                    <i class="fas fa-sun hidden dark:block text-yellow-400 text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow container max-w-2xl mx-auto px-4 py-8 flex flex-col justify-center min-h-[80vh] transition-all duration-500" id="mainContainer">
+        
+        <div id="searchSection" class="text-center space-y-8 w-full">
+            <div class="space-y-2">
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                    What do you want to <br class="sm:hidden"><span class="text-brand-600 dark:text-brand-500">learn today?</span>
+                </h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm sm:text-base">Distraction-free knowledge from Wikipedia.</p>
+            </div>
+            
+            <form class="relative max-w-xl mx-auto w-full group" onsubmit="event.preventDefault(); initiateSearch();">
+                <input type="text" id="searchInput" 
+                    placeholder="Search any topic..." 
+                    class="w-full pl-14 pr-16 py-5 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all text-lg font-medium placeholder-gray-400">
+                
+                <i class="fas fa-search absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl group-focus-within:text-brand-500 transition"></i>
+                
+                <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2 bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition shadow-lg shadow-brand-500/30">
+                    Go
+                </button>
+            </form>
+
+            <div id="suggestions" class="flex flex-wrap justify-center gap-2 pt-2">
+                <button onclick="quickSearch('Artificial Intelligence')" class="tag-btn">🤖 AI</button>
+                <button onclick="quickSearch('SpaceX')" class="tag-btn">🚀 SpaceX</button>
+                <button onclick="quickSearch('Psychology')" class="tag-btn">🧠 Psychology</button>
+                <button onclick="quickSearch('Climate Change')" class="tag-btn">🌍 Climate</button>
+                <button onclick="quickSearch('Quantum Mechanics')" class="tag-btn">⚛️ Quantum</button>
+            </div>
+
+            <section class="max-w-3xl mx-auto mt-16 text-center px-4 pt-10 border-t border-gray-100 dark:border-gray-800">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">What is Wiki Fetcher?</h2>
+                <p class="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
+                  Wiki Fetcher is a smart learning tool that helps students read Wikipedia
+                  without distractions. It removes ads, sidebars, and clutter, letting you
+                  focus on learning.
+                </p>
+               
+                <h3 class="text-xl font-semibold mt-8 mb-3 text-gray-800 dark:text-gray-100">Why Students Love Wiki Fetcher</h3>
+                <ul class="text-left max-w-sm mx-auto list-disc pl-6 text-gray-600 dark:text-gray-400">
+                  <li class="mb-2">Distraction-free Wikipedia reading</li>
+                  <li class="mb-2">Paragraph-by-paragraph learning mode</li>
+                  <li class="mb-2">Fast, lightweight, and free</li>
+                  <li>Supports multiple languages</li>
+                </ul>
+            </section>
+        </div>
+
+        <div id="loader" class="hidden flex flex-col justify-center items-center py-20 space-y-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-brand-600"></div>
+            <p class="text-gray-400 text-sm animate-pulse">Fetching knowledge...</p>
+        </div>
+
+        <div id="searchResultsSection" class="hidden fade-in-up w-full max-w-2xl mx-auto">
+            <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Select an Article:</h3>
+            <div id="resultsList" class="space-y-3">
+                </div>
+            <div class="text-center mt-6">
+                <button onclick="resetApp()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-sm font-medium transition">
+                    Search again
+                </button>
+            </div>
+        </div>
+
+        <div id="errorState" class="hidden text-center py-10 space-y-4 fade-in-up">
+            <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto text-red-500 text-2xl">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Topic not found</h3>
+                <p class="text-gray-500 mt-2">We couldn't find an article for that. Try a different keyword.</p>
+            </div>
+            <button onclick="resetApp()" class="text-brand-600 font-medium hover:underline">Try Again</button>
+        </div>
+
+        <div id="resultCard" class="hidden fade-in-up w-full max-w-2xl mx-auto">
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl shadow-gray-200/50 dark:shadow-none overflow-hidden border border-gray-100 dark:border-gray-700">
+                <div id="resultImage" class="h-56 w-full bg-gray-100 dark:bg-gray-700 bg-cover bg-center hidden relative">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div class="absolute bottom-4 left-6 right-6">
+                        <h2 id="resultTitleOverlay" class="text-3xl font-bold text-white shadow-sm truncate"></h2>
+                    </div>
+                </div>
+                
+                <div class="p-6 sm:p-8">
+                    <h2 id="resultTitle" class="text-3xl font-bold mb-3 text-gray-900 dark:text-white hidden"></h2>
+                    
+                    <div class="flex items-center gap-2 mb-4">
+                        <span id="resultLangTag" class="text-[10px] font-bold uppercase tracking-wider text-brand-600 bg-brand-50 dark:bg-brand-900/30 dark:text-brand-300 px-2 py-1 rounded-md border border-brand-100 dark:border-brand-800">Wiki</span>
+                        <p id="resultDesc" class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wide truncate"></p>
+                    </div>
+
+                    <p id="resultExtract" class="text-gray-600 dark:text-gray-300 leading-relaxed mb-8 text-lg"></p>
+                    
+                    <div class="flex gap-3 flex-col sm:flex-row">
+                        <button onclick="startReadingMode()" class="flex-1 bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-200 text-white dark:text-gray-900 py-3.5 rounded-xl font-bold shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fas fa-align-left"></i> Read Paragraph by Paragraph
+                        </button>
+                        <a id="wikiLink" href="#" target="_blank" class="px-5 py-3.5 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                            <i class="fab fa-wikipedia-w text-lg"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-6">
+                <button onclick="resetApp()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-sm font-medium transition">
+                    Search another topic
+                </button>
+            </div>
+        </div>
+
+        <div id="readingMode" class="hidden w-full max-w-2xl mx-auto pb-32">
+            <div class="sticky top-[70px] z-40 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur py-4 mb-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-800">
+                <button onclick="closeReadingMode()" class="text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-white transition flex items-center gap-2 text-sm font-semibold pl-1">
+                    <i class="fas fa-chevron-left"></i> Back
+                </button>
+                <div class="flex items-center gap-3">
+                    <div class="h-1.5 w-24 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div id="progressBar" class="h-full bg-brand-500 w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="contentThread" class="space-y-6">
+                </div>
+
+            <div class="mt-12 text-center pb-10">
+                <button id="nextParaBtn" onclick="loadNextParagraph()" class="w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold shadow-xl shadow-brand-500/20 transition transform active:scale-95 flex items-center justify-center gap-2 mx-auto">
+                    <span>Read Next</span>
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+                <div id="endMessage" class="hidden py-8">
+                    <div class="text-gray-400 mb-4">You've reached the end!</div>
+                    <button onclick="resetApp()" class="text-brand-600 font-semibold hover:underline">Start New Search</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- Configuration & State ---
+        let currentLang = 'en';
+        let currentTitle = '';
+        let articleParagraphs = [];
+        let currentParaIndex = 0;
+        let searchResults = [];
+
+        // --- Styles & UI Helpers ---
+        document.querySelectorAll('.tag-btn').forEach(btn => {
+            btn.className = "px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400 transition cursor-pointer shadow-sm";
+        });
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        function quickSearch(term) { 
+            document.getElementById('searchInput').value = term; 
+            initiateSearch(); 
+        }
+
+        async function initiateSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            currentLang = document.getElementById('langSelect').value;
+            
+            // UI Update: Show loader, hide everything else
+            document.getElementById('searchSection').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('searchResultsSection').classList.add('hidden');
+            document.getElementById('mainContainer').classList.remove('justify-center');
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('resultCard').classList.add('hidden');
+            document.getElementById('readingMode').classList.add('hidden');
+
+            try {
+                // STEP 1: Full Search via Query API (list=search)
+                const searchUrl = `https://${currentLang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*&srlimit=50`;
+                
+                const searchResp = await fetch(searchUrl);
+                const searchData = await searchResp.json();
+
+                if (!searchData.query || !searchData.query.search || searchData.query.search.length === 0) {
+                    throw new Error('No results found');
+                }
+
+                searchResults = searchData.query.search;
+                renderSearchResults(searchResults); 
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('errorState').classList.remove('hidden');
+                document.getElementById('mainContainer').classList.add('justify-center');
+            }
+        }
+
+        function renderSearchResults(results) {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('searchResultsSection').classList.remove('hidden'); 
+
+            const listEl = document.getElementById('resultsList');
+            listEl.innerHTML = ''; 
+
+            const header = document.querySelector('#searchResultsSection h3');
+            header.textContent = `Found ${results.length} results. Select an Article:`;
+
+            results.forEach(item => {
+                const title = item.title;
+                const snippet = item.snippet.replace(/<span class="searchmatch">/g, '<strong>').replace(/<\/span>/g, '</strong>') + '...'; 
+                
+                const resultItem = document.createElement('div');
+                resultItem.className = 'bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-brand-500 transition cursor-pointer';
+                resultItem.setAttribute('onclick', `selectArticle(decodeURIComponent('${encodeURIComponent(title)}'))`); 
+                resultItem.innerHTML = `
+                    <h4 class="text-lg font-semibold text-brand-600 dark:text-brand-400 hover:underline">${title}</h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${snippet}</p>
+                `;
+                listEl.appendChild(resultItem);
+            });
+        }
+
+        function selectArticle(title) {
+            currentTitle = title;
+            document.getElementById('searchResultsSection').classList.add('hidden');
+            document.getElementById('loader').classList.remove('hidden');
+            fetchArticleDetails(title);
+        }
+
+        async function fetchArticleDetails(title) {
+            try {
+                const summaryUrl = `https://${currentLang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+                const summaryResp = await fetch(summaryUrl);
+                
+                if (!summaryResp.ok) throw new Error('Summary fetch failed');
+                
+                const summaryData = await summaryResp.json();
+                renderCard(summaryData);
+
+            } catch (error) {
+                console.error("Error fetching article details:", error);
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('errorState').classList.remove('hidden');
+                document.getElementById('mainContainer').classList.add('justify-center');
+            }
+        }
+
+        function renderCard(data) {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('resultCard').classList.remove('hidden');
+
+            const title = data.title;
+            const extract = data.extract || "No summary available. Click 'Start Reading' to see the full article.";
+            const desc = data.description || "Wikipedia Article";
+
+            document.getElementById('resultTitle').textContent = title;
+            document.getElementById('resultTitleOverlay').textContent = title;
+            document.getElementById('resultDesc').textContent = desc;
+            document.getElementById('resultExtract').textContent = extract;
+            document.getElementById('wikiLink').href = data.content_urls?.desktop?.page || '#';
+            document.getElementById('resultLangTag').textContent = currentLang.toUpperCase();
+
+            const imgEl = document.getElementById('resultImage');
+            const titleEl = document.getElementById('resultTitle');
+            
+            if (data.thumbnail && data.thumbnail.source) {
+                imgEl.style.backgroundImage = `url('${data.thumbnail.source}')`;
+                imgEl.classList.remove('hidden');
+                titleEl.classList.add('hidden');
+            } else {
+                imgEl.classList.add('hidden');
+                titleEl.classList.remove('hidden');
+            }
+        }
+
+        // --- Reading Mode Logic ---
+        async function startReadingMode() {
+            document.getElementById('resultCard').classList.add('hidden');
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('mainContainer').classList.remove('justify-center');
+
+            try {
+                const htmlUrl = `https://${currentLang}.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(currentTitle)}`;
+                const response = await fetch(htmlUrl);
+                if(!response.ok) throw new Error('Content load failed');
+                const htmlText = await response.text();
+
+                parseContent(htmlText);
+
+            } catch (e) {
+                console.error("Error in startReadingMode:", e);
+                document.getElementById('resultExtract').textContent = "Could not load the full article text for reading mode. Please try opening on Wikipedia directly via the link.";
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('resultCard').classList.remove('hidden');
+            }
+        }
+
+        function parseContent(html) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            const elements = Array.from(doc.querySelectorAll('h2, h3, p'));
+            
+            articleParagraphs = [];
+
+            elements.forEach(el => {
+                let text = el.innerText;
+                text = text.replace(/\[\d+\]/g, '').trim();
+
+                if (text.length < 3) return; 
+
+                if (el.tagName === 'H2' || el.tagName === 'H3') {
+                    articleParagraphs.push({ type: 'header', text: text, tag: el.tagName });
+                } else {
+                    if (text.length > 20) {
+                        articleParagraphs.push({ type: 'para', text: text });
+                    }
+                }
+            });
+
+            if (articleParagraphs.length === 0) {
+                document.getElementById('resultExtract').textContent = "This article's content structure is incompatible with Reading Mode (mostly tables or lists).";
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('resultCard').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('readingMode').classList.remove('hidden');
+            document.getElementById('contentThread').innerHTML = '';
+            document.getElementById('nextParaBtn').classList.remove('hidden');
+            document.getElementById('endMessage').classList.add('hidden');
+            
+            currentParaIndex = 0;
+            updateProgress();
+            
+            loadNextParagraph();
+        }
+
+        function loadNextParagraph() {
+            if (currentParaIndex >= articleParagraphs.length) {
+                document.getElementById('nextParaBtn').classList.add('hidden');
+                document.getElementById('endMessage').classList.remove('hidden');
+                return;
+            }
+
+            const item = articleParagraphs[currentParaIndex];
+            const div = document.createElement('div');
+            
+            if (item.type === 'header') {
+                div.className = "fade-in-up mt-8 mb-2";
+                const sizeClass = item.tag === 'H2' ? 'text-2xl font-bold text-gray-900 dark:text-white border-b dark:border-gray-700 pb-2' : 'text-xl font-semibold text-gray-800 dark:text-gray-200 mt-4';
+                div.innerHTML = `<h3 class="${sizeClass}">${item.text}</h3>`;
+            } else {
+                div.className = "fade-in-up bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 text-lg leading-relaxed text-gray-700 dark:text-gray-300 font-normal";
+                div.innerHTML = item.text;
+            }
+
+            document.getElementById('contentThread').appendChild(div);
+            
+            if (currentParaIndex > 0) {
+                setTimeout(() => {
+                    div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }, 50);
+            }
+
+            currentParaIndex++;
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const pct = Math.min(100, Math.round((currentParaIndex / articleParagraphs.length) * 100));
+            document.getElementById('progressBar').style.width = `${pct}%`;
+        }
+
+        function closeReadingMode() {
+            document.getElementById('readingMode').classList.add('hidden');
+            document.getElementById('resultCard').classList.remove('hidden');
+            window.scrollTo(0,0);
+        }
+
+        function resetApp() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchSection').classList.remove('hidden');
+            document.getElementById('mainContainer').classList.remove('justify-center');
+            document.getElementById('mainContainer').classList.add('justify-center'); 
+            
+            document.getElementById('resultCard').classList.add('hidden');
+            document.getElementById('readingMode').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('searchResultsSection').classList.add('hidden');
+            document.getElementById('loader').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
